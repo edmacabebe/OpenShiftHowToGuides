@@ -5,7 +5,7 @@ In order to run your own Docker image, you need to push the image to OpenShift i
 
 ## Assumption:
 ### You have a working OpenShift cluster. To setup a one-node cluster, refer to this link: https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md
-
+OR
 ### There is a user called openshift-dev with the following credentials:
 ```
 username: openshift-dev
@@ -20,11 +20,11 @@ FROM centos:latest
 RUN yum install -y java-1.8.0-openjdk-devel
 RUN yum install -y unzip
 RUN adduser tomcat
-USER tomcat
-RUN cd /home/tomcat && curl http://mirror.rise.ph/apache/tomcat/tomcat-9/v9.0.0.M21/bin/apache-tomcat-9.0.0.M21.zip -o apache-tomcat-9.0.0.M21.zip
-RUN cd /home/tomcat && unzip apache-tomcat-9.0.0.M21.zip && ln -s apache-tomcat-9.0.0.M21 tomcat
+ADD tomcat.zip /home/tomcat
+RUN cd /home/tomcat && unzip tomcat.zip && mv apache-tomcat-7.0.82 tomcat
+RUN cd /home/tomcat/tomcat/bin && chown -R 1000:1000 /home/tomcat &&  chmod a+x *.sh && chmod -R a+rxw /home/tomcat
 EXPOSE 8080
-RUN cd /home/tomcat/tomcat/bin && chmod +x *.sh
+USER 1000
 ENTRYPOINT cd /home/tomcat/tomcat/bin && ./catalina.sh run
 ```
 ## Build a docker image
@@ -46,7 +46,7 @@ myproject/tomcat                                              latest            
 oc login -u openshift-dev -p devel
 ```
 
-## Create a new project. In this example, we call this project "myproject".
+## Create a new project. In this example, we call this project "myproject". When prompted for Email, enter any valid email.
 
 ```bash
 [vagrant@rhel-cdk master]$ oc new-project myproject
@@ -60,15 +60,43 @@ to build a new example application in Ruby.
 ```
 ## Login to docker 
 
-The URL of the OpenShift internal registry is hub.openshift.rhel-cdk.10.1.2.2.xip.io. To determine the URL of your internal Openshift Docker registry, go to the OpenShift console->default and look at the Docker registry route as shown in the red box below:
+The URL of the OpenShift internal registry is hub.openshift.rhel-cdk.10.1.2.2.xip.io. To determine the URL of your internal Openshift Docker registry, go to the OpenShift console( https://10.1.2.2:8443/console/ )->default and look at the Docker registry route as shown in the red box below:
 
 ![images/openshift_registry_screenshot.png](images/openshift_registry_screenshot.png)
+
+```
+[vagrant@rhel-cdk tomcat]$ oc get routes -n default
+
+```
+
+This step might be needed. Best to add to your /etc/hosts file.
+
+```
+[vagrant@rhel-cdk tomcat]$ sudo vi /etc/hosts
+    add on the last line; 10.1.2.2 hub.openshift.rhel-cdk.10.1.2.2.xip.io
+    save, then ping hub.openshift.rhel-cdk.10.1.2.2.xip.io
+```
+If you get a certificate error, like the below:
+
+![images/oc-er01.png](images/oc-er01.png)
+
+edit your /etc/sysconfig/docker file and add the following:
+
+```
+[vagrant@rhel-cdk tomcat]$ sudo vi /etc/sysconfig/docker
+```
+```INSECURE_REGISTRY='--insecure-registry hub.openshift.rhel-cdk.10.1.2.2.xip.io'```
+
+Restart docker:
+
+```
+[vagrant@rhel-cdk tomcat]$ sudo systemctl restart docker
+```
 
 ```
 [vagrant@rhel-cdk tomcat]$ docker login -u openshift-dev -p $(oc whoami -t) hub.openshift.rhel-cdk.10.1.2.2.xip.io
 WARNING: login credentials saved in /home/vagrant/.docker/config.json
 Login Succeeded
-
 ``` 
 ## Tag your image so that it contains the URL of the internal docker registry and the project name "myproject"
 
