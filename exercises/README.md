@@ -4,6 +4,7 @@
   If so, then among the list of images present are 
     - bcorpusjr/tomcat
     - wkulhanek/gogs:11.4
+    - centos/postgresql-95-centos7
 - If not, do the ff:
     - get inside your cluster's VM
     - or if you're using minishift, simply call minishift ssh
