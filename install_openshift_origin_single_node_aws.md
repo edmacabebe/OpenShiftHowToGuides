@@ -13,7 +13,7 @@
 <img src="images/aws_security_group_openshift.png">
 
 ```
-## Install oc client
+## Install oc client, using wget as below using your version of choice, ie. replace 1.5.1 with 3.9.0
 
 ```bash
 curl -L https://github.com/openshift/origin/releases/download/v1.5.1/openshift-origin-client-tools-v1.5.1-7b451fc-linux-64bit.tar.gz -o oc.tar.gz
@@ -43,11 +43,12 @@ yum install -y firewalld
 yum install -y git
 ```
 
-## Install docker
+## Install docker, v1.12.x  
 
 ```
 yum install -y docker
 ```
+ - Or try this [guide](https://gist.github.com/johnmccabe/b8092fcc31335eb789a734d68b1efe53) if problems are encountered
 - Edit the file /etc/sysconfig/docker and add the line 
 
 ```
